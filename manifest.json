@@ -1,0 +1,133 @@
+{
+  "name": "amz-hot-keywords",
+  "version": "1.0.0",
+  "description": "获取商品热搜词技能 - 从 AMZ123 等平台抓取热搜关键词数据（搜索词、本周排名、上周排名、涨跌幅度），自动写入钉钉 AI表格",
+  "author": "北野川",
+  "organization": "bug 砖家",
+  "created_at": "2026-03-14",
+  "updated_at": "2026-03-14",
+  
+  "entry_point": "scripts/amz123_enhanced_scraper_v2.py",
+  "check_script": "scripts/check_prerequisites.py",
+  
+  "skills": [
+    {
+      "id": "amz-hot-keywords-skill",
+      "name": "商品热搜词获取",
+      "description": "从 AMZ123 抓取热搜关键词数据，自动写入钉钉 AI表格",
+      "trigger_scenarios": [
+        "用户要求获取商品热搜词",
+        "用户要求分析关键词趋势",
+        "帮我抓亚马逊热搜词",
+        "查看 dog bed 的搜索热度",
+        "分析关键词排名变化"
+      ],
+      "parameters": {
+        "keyword": {
+          "type": "string",
+          "required": true,
+          "description": "搜索关键词（如 'dog bed'）"
+        },
+        "url": {
+          "type": "string",
+          "required": false,
+          "description": "热搜页面 URL（可选，默认使用配置的URL）"
+        },
+        "no_write": {
+          "type": "boolean",
+          "required": false,
+          "description": "仅抓取不写入（用于测试）"
+        }
+      },
+      "output_schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "搜索词": {"type": "string"},
+            "本周排名": {"type": "integer"},
+            "上周排名": {"type": "integer"},
+            "涨跌幅度": {"type": "string", "enum": ["上升", "下降", "持平"]}
+          }
+        }
+      }
+    }
+  ],
+  
+  "dependencies": {
+    "python": ">=3.9",
+    "packages": [
+      "selenium",
+      "requests",
+      "beautifulsoup4",
+      "pandas",
+      "fake-useragent"
+    ],
+    "tools": [
+      "mcporter",
+      "browser"
+    ]
+  },
+  
+  "configuration": {
+    "config_file": "scripts/scraper_config.json",
+    "required_fields": [
+      "keyword",
+      "url",
+      "table_uuid",
+      "sheet_id",
+      "mcp_url"
+    ],
+    "dingtalk_table_fields": [
+      "搜索词",
+      "本周排名",
+      "上周排名",
+      "涨跌幅度"
+    ]
+  },
+  
+  "resources": {
+    "documentation": [
+      "SKILL.md",
+      "references/QUICK_START.md",
+      "references/OPTIMIZATION_SUMMARY.md",
+      "references/ENHANCED_SCRAPER_README.md"
+    ],
+    "scripts": [
+      "scripts/amz123_enhanced_scraper_v2.py",
+      "scripts/check_prerequisites.py"
+    ]
+  },
+  
+  "usage_examples": [
+    {
+      "title": "基本用法",
+      "command": "python3 scripts/amz123_enhanced_scraper_v2.py --keyword \"dog bed\"",
+      "description": "抓取指定关键词的热搜数据并写入表格"
+    },
+    {
+      "title": "测试模式",
+      "command": "python3 scripts/amz123_enhanced_scraper_v2.py --keyword \"yoga mat\" --no-write",
+      "description": "仅抓取数据验证，不写入表格"
+    },
+    {
+      "title": "自定义 URL",
+      "command": "python3 scripts/amz123_enhanced_scraper_v2.py --keyword \"phone case\" --url \"https://custom-url.com\"",
+      "description": "使用不同的热搜页面 URL"
+    }
+  ],
+  
+  "best_practices": [
+    "关键词必须用户输入，无默认值",
+    "数据必须真实抓取，禁止模拟",
+    "每周清空旧数据后写入新数据",
+    "执行前先运行前置条件检查",
+    "批量写入时每批最多 100 条记录"
+  ],
+  
+  "troubleshooting": {
+    "empty_data": "检查网络连接和页面结构，使用--no-write 测试",
+    "write_failed": "验证钉钉表格字段是否匹配，检查 MCP 连接",
+    "mcp_timeout": "检查 mcporter list 状态，重新获取 MCP URL"
+  }
+}
